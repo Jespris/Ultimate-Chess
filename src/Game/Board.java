@@ -32,6 +32,16 @@ public class Board {
         this.legalMoves = new ArrayList<>();
     }
 
+    public List<Move> getMovesFromSquare(int squareIndex){
+        List<Move> moves = new ArrayList<>();
+        for (Move move : getLegalMoves()) {
+            if (move.getFromSquare() == squareIndex){
+                moves.add(move);
+            }
+        }
+        return moves;
+    }
+
     public List<Move> getLegalMoves() {
         if (legalMoves.isEmpty()){
             System.out.println("Legal moves hasn't been calculated, calculating...");
@@ -64,7 +74,14 @@ public class Board {
         StringBuilder rowPieces = new StringBuilder();
         for (int row = 0; row < 8; row++){
             for (int col = 0; col < 8; col++){
-                rowPieces.append(getPieceOnSquare(row * 8 + col)).append(" ");
+                Piece pieceOnSquare = getPieceOnSquare(row * 8 + col);
+                String pieceName;
+                if (pieceOnSquare != null){
+                    pieceName = pieceOnSquare.getPieceName();
+                } else {
+                    pieceName = "--";
+                }
+                rowPieces.append(pieceName).append(" ");
             }
             System.out.println(rowPieces);
             rowPieces.setLength(0);
@@ -216,6 +233,10 @@ public class Board {
         int row = squareIndex / 8;
         int col = squareIndex % 8;
         return new int[]{row, col};
+    }
+
+    public boolean getWhiteToMove() {
+        return this.whiteToMove;
     }
 }
 

@@ -14,4 +14,20 @@ public class Move {
         this.pieceMoved = pieceMoved;
         this.pieceCaptured = pieceCaptured;
     }
+
+    public int getFromSquare() {
+        return fromSquare;
+    }
+
+    public int getToSquare() {
+        return toSquare;
+    }
+
+    public Piece getPieceCaptured() {
+        return pieceCaptured;
+    }
+
+    public Piece getPieceMoved() {
+        return pieceMoved;
+    }
 }

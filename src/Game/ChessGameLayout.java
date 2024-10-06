@@ -1,15 +1,20 @@
 package Game;
+
+import Game.Pieces.Piece;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ChessGameLayout extends JFrame {
 
     private Board board;  // Reference to the board that tracks the game state
     private Map<String, ImageIcon> pieceIcons;  // Map to hold piece images
+    private JLayeredPane[][] tiles;  // Store references to the tiles on the board
 
     public ChessGameLayout(Board board) {
         this.board = board;  // Initialize the board
@@ -21,43 +26,21 @@ public class ChessGameLayout extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Create the main panel with BorderLayout
+        // Main panel for the entire UI
         JPanel mainPanel = new JPanel(new BorderLayout());
 
         // Create placeholders for the top settings and customization
-        JPanel topPanel = new JPanel();
-        topPanel.setBackground(Color.LIGHT_GRAY);
-        topPanel.setPreferredSize(new Dimension(1000, 80));
-        topPanel.add(new JLabel("Settings and Customization"));
+        JPanel topPanel = createPanelWithLabel("Settings and Customization", Color.LIGHT_GRAY, new Dimension(1000, 80));
+        JPanel leftPanel = createPanelWithLabel("Information (Left)", Color.BLACK, new Dimension(150, 800));
+        JPanel rightPanel = createPanelWithLabel("Information (Right)", Color.BLACK, new Dimension(150, 800));
+        JPanel topPlayerPanel = createPanelWithLabel("Name | Clock", Color.BLACK, new Dimension(600, 50));
+        JPanel bottomPlayerPanel = createPanelWithLabel("Name | Clock", Color.BLACK, new Dimension(600, 50));
 
-        // Create placeholders for left and right information panels
-        JPanel leftPanel = new JPanel();
-        leftPanel.setBackground(Color.BLACK);
-        leftPanel.setPreferredSize(new Dimension(150, 800));
-        leftPanel.add(new JLabel("Information (Left)"));
-
-        JPanel rightPanel = new JPanel();
-        rightPanel.setBackground(Color.BLACK);
-        rightPanel.setPreferredSize(new Dimension(150, 800));
-        rightPanel.add(new JLabel("Information (Right)"));
-
-        // Create the chess board with placeholders for player names and clocks
-        JPanel centerPanel = new JPanel(new BorderLayout());
+        // Create the chess board panel
         JPanel chessBoardPanel = createChessBoard();
 
-        // Placeholder for the top player's name and clock
-        JPanel topPlayerPanel = new JPanel();
-        topPlayerPanel.setPreferredSize(new Dimension(600, 50));
-        topPlayerPanel.setBackground(Color.BLACK);
-        topPlayerPanel.add(new JLabel("Name | Clock"));
-
-        // Placeholder for the bottom player's name and clock
-        JPanel bottomPlayerPanel = new JPanel();
-        bottomPlayerPanel.setPreferredSize(new Dimension(600, 50));
-        bottomPlayerPanel.setBackground(Color.BLACK);
-        bottomPlayerPanel.add(new JLabel("Name | Clock"));
-
         // Add player panels and chessboard to the center panel
+        JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.add(topPlayerPanel, BorderLayout.NORTH);
         centerPanel.add(chessBoardPanel, BorderLayout.CENTER);
         centerPanel.add(bottomPlayerPanel, BorderLayout.SOUTH);
@@ -76,123 +59,188 @@ public class ChessGameLayout extends JFrame {
         setVisible(true);
     }
 
+    // Helper method to create panels with labels
+    private JPanel createPanelWithLabel(String labelText, Color bgColor, Dimension size) {
+        JPanel panel = new JPanel();
+        panel.setBackground(bgColor);
+        panel.setPreferredSize(size);
+        panel.add(new JLabel(labelText));
+        return panel;
+    }
+
     // Method to load piece icons from the PNG files
     private void loadPieceIcons() {
         pieceIcons = new HashMap<>();
         String[] pieceNames = {"wP", "wK", "wQ", "wB", "wN", "wR", "bP", "bK", "bQ", "bB", "bN", "bR"};
         for (String pieceName : pieceNames) {
-            // Load the image from resources using getResource()
             String path = "/resources/pieceImages/" + pieceName + ".png";
             ImageIcon icon = new ImageIcon(getClass().getResource(path));
             pieceIcons.put(pieceName, icon);
         }
     }
-    private JPanel createChessBoard() {
-        JPanel chessBoardPanel = getjPanel();
-        int tileSize = 75; // Initial size for the tiles
 
-        // Create the 8x8 grid of squares
-        JPanel[][] tiles = new JPanel[8][8];
+    // Method to create a chessboard with 8x8 grid of tiles and pieces
+    private JPanel createChessBoard() {
+        JPanel chessBoardPanel = getjPanel();  // Get panel with null layout for manual control
+        tiles = new JLayeredPane[8][8];  // 8x8 grid for storing tiles
+
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
-                JPanel tile = new JPanel(null);  // Null layout for placing the piece and square name
-                tile.setBackground((row + col) % 2 == 0 ? Color.LIGHT_GRAY : Color.DARK_GRAY);  // Alternate colors
-                tiles[row][col] = tile;
+                JLayeredPane tile = createTile(row, col);
                 chessBoardPanel.add(tile);
 
-                // Get the board index based on row and col
-                int boardIndex = (row * 8) + col;
-
-                // Add row number to leftmost tiles
-                if (col == 0) {
-                    JLabel rowLabel = new JLabel(String.valueOf(8 - row));  // Row numbers 8 to 1
-                    rowLabel.setBounds(5, 5, 20, 20);  // Position in top-left corner
-                    tile.add(rowLabel);
-                }
-
-                // Add file letter to bottommost tiles
-                if (row == 7) {
-                    char fileLetter = (char) ('A' + col);  // File letters A to H
-                    JLabel fileLabel = new JLabel(String.valueOf(fileLetter));
-                    fileLabel.setBounds(tileSize - 20, tileSize - 20, 20, 20);  // Position in bottom-right corner
-                    tile.add(fileLabel);
-                }
-
-                // A1 tile (bottom-left) should display both row number and file letter
-                if (row == 7 && col == 0) {
-                    JLabel fileLabel = new JLabel("A");
-                    fileLabel.setBounds(tileSize - 20, tileSize - 20, 20, 20);  // Bottom-right corner
-                    tile.add(fileLabel);
-                }
-
-                // Get the piece for this board position from the board object
-                String pieceName = board.getPieceOnSquare(boardIndex).getPieceName();
-                if (!pieceName.equals("--")) {
-                    // If there's a piece on this square, add the corresponding image
-                    JLabel pieceLabel = new JLabel(pieceIcons.get(pieceName));
-                    pieceLabel.setBounds(0, 0, tileSize, tileSize);  // Position the piece in the tile
-                    tile.add(pieceLabel);  // Add the piece label to the tile
-                }
+                // Add row and file labels on the edge tiles
+                addRowAndFileLabels(tile, row, col);
             }
         }
 
-        // Adjust the size of the tiles to ensure they are always square
+        // Ensure tiles are resized and repositioned correctly when the window is resized
         chessBoardPanel.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
                 int panelSize = Math.min(chessBoardPanel.getWidth(), chessBoardPanel.getHeight());
-                int tileSize = panelSize / 8; // Divide the panel size by 8 for 8 tiles per row and column
-
-                // Calculate offsets to center the board
-                int offsetX = (chessBoardPanel.getWidth() - panelSize) / 2;
-                int offsetY = (chessBoardPanel.getHeight() - panelSize) / 2;
-
-                // Resize and reposition each tile to keep them square
-                for (int row = 0; row < 8; row++) {
-                    for (int col = 0; col < 8; col++) {
-                        JPanel tile = tiles[row][col];
-                        tile.setBounds(offsetX + col * tileSize, offsetY + row * tileSize, tileSize, tileSize);
-
-                        // Reposition piece and labels (if any) within the tile
-                        for (Component comp : tile.getComponents()) {
-                            if (comp instanceof JLabel) {
-                                JLabel label = (JLabel) comp;
-                                if (label.getText() == null){
-                                    continue;
-                                }
-                                if (row == 7 && col == 0 && label.getText().equals("A")) {
-                                    label.setBounds(tileSize - 20, tileSize - 20, 20, 20); // File label for A1
-                                } else if (col == 0 && label.getText().matches("[1-8]")) {
-                                    label.setBounds(5, 5, 20, 20); // Row label
-                                } else if (row == 7 && label.getText().matches("[A-H]")) {
-                                    label.setBounds(tileSize - 20, tileSize - 20, 20, 20); // File label
-                                }
-                            }
-                        }
-                    }
-                }
+                int tileSize = panelSize / 8;  // Make sure tiles remain square
+                positionAndResizeTiles(tileSize, chessBoardPanel.getWidth(), chessBoardPanel.getHeight());
             }
         });
 
         return chessBoardPanel;
     }
 
+    // Helper method to create a tile (as JLayeredPane) at a given row and column
+    private JLayeredPane createTile(int row, int col) {
+        JLayeredPane tile = new JLayeredPane();
+        tile.setLayout(null);  // Null layout for custom positioning
+
+        // Set tile background color
+        tile.setBackground((row + col) % 2 == 0 ? Color.LIGHT_GRAY : Color.DARK_GRAY);
+        tile.setOpaque(true);
+
+        // Get the board index and add the piece (if any)
+        int boardIndex = (row * 8) + col;
+        Piece pieceOnSquare = board.getPieceOnSquare(boardIndex);
+
+        if (pieceOnSquare != null) {
+            JLabel pieceLabel = new JLabel(pieceIcons.get(pieceOnSquare.getPieceName()));
+            pieceLabel.setBounds(0, 0, 75, 75);  // Initial size of the piece
+            tile.add(pieceLabel, JLayeredPane.DEFAULT_LAYER);  // Add piece at the default layer
+        }
+
+        // Add MouseListener to detect clicks on the tile
+        tile.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getButton() == java.awt.event.MouseEvent.BUTTON1) {
+                    handleTileClick(boardIndex, tile, row, col);
+                }
+            }
+        });
+
+        tiles[row][col] = tile;  // Store tile reference
+        return tile;
+    }
+
+    // Handle click events on tiles, including displaying legal moves
+    private void handleTileClick(int boardIndex, JLayeredPane tile, int row, int col) {
+        Piece pieceOnSquare = board.getPieceOnSquare(boardIndex);
+
+        // If the piece is the correct color to move, display legal moves
+        if (pieceOnSquare != null && pieceOnSquare.isWhite() == board.getWhiteToMove()) {
+            List<Move> pieceMoves = board.getMovesFromSquare(boardIndex);
+            clearDotsFromBoard();  // Clear old dots
+            displayLegalMoves(pieceMoves);  // Display dots for legal moves
+        } else {
+            clearDotsFromBoard();  // Clear old dots if wrong piece is clicked
+        }
+    }
+
+    // Display dots on the destination tiles for legal moves
+    private void displayLegalMoves(List<Move> moves) {
+        for (Move move : moves) {
+            int destinationIndex = move.getToSquare();
+            int destRow = destinationIndex / 8;
+            int destCol = destinationIndex % 8;
+
+            JLayeredPane destinationTile = tiles[destRow][destCol];
+
+            JLabel dotLabel = new JLabel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    g.setColor(Color.BLACK);  // Dot color
+                    g.fillOval(0, 0, 20, 20);  // Dot size and position
+                }
+            };
+
+            dotLabel.setBounds(27, 27, 20, 20);  // Center the dot
+            destinationTile.add(dotLabel, JLayeredPane.PALETTE_LAYER);  // Add dot at a higher layer
+            destinationTile.repaint();
+        }
+    }
+
+    // Clear existing dots from all tiles
+    private void clearDotsFromBoard() {
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                JLayeredPane tile = tiles[row][col];
+                for (Component comp : tile.getComponentsInLayer(JLayeredPane.PALETTE_LAYER)) {
+                    tile.remove(comp);  // Remove dots (palette layer)
+                }
+                tile.repaint();
+            }
+        }
+    }
+
+    // Helper method to add row and file labels to the appropriate tiles
+    private void addRowAndFileLabels(JLayeredPane tile, int row, int col) {
+        // Add row number to leftmost tiles
+        if (col == 0) {
+            JLabel rowLabel = new JLabel(String.valueOf(8 - row));
+            rowLabel.setBounds(5, 5, 20, 20);
+            tile.add(rowLabel, JLayeredPane.PALETTE_LAYER);  // Add label at a higher layer
+        }
+
+        // Add file letter to bottommost tiles
+        if (row == 7) {
+            char fileLetter = (char) ('A' + col);
+            JLabel fileLabel = new JLabel(String.valueOf(fileLetter));
+            fileLabel.setBounds(55, 55, 20, 20);  // Bottom-right corner
+            tile.add(fileLabel, JLayeredPane.PALETTE_LAYER);
+        }
+    }
+
+    // Helper method to reposition and resize tiles when the window is resized
+    private void positionAndResizeTiles(int tileSize, int width, int height) {
+        int offsetX = (width - tileSize * 8) / 2;
+        int offsetY = (height - tileSize * 8) / 2;
+
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                JLayeredPane tile = tiles[row][col];
+                tile.setBounds(offsetX + col * tileSize, offsetY + row * tileSize, tileSize, tileSize);
+
+                // Reposition pieces within the tiles
+                for (Component comp : tile.getComponents()) {
+                    if (comp instanceof JLabel) {
+                        comp.setBounds(0, 0, tileSize, tileSize);  // Resize pieces to fit tile
+                    }
+                }
+            }
+        }
+    }
+
+    // Create a chess board panel with manual layout control
     private static JPanel getjPanel() {
-        JPanel chessBoardPanel = new JPanel(null) { // Use null layout for manual sizing
+        JPanel chessBoardPanel = new JPanel(null) {
             @Override
             public void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                // Ensure the panel is square
                 int size = Math.min(getWidth(), getHeight());
-                setPreferredSize(new Dimension(size, size));
+                setPreferredSize(new Dimension(size, size));  // Ensure the board stays square
             }
         };
 
         chessBoardPanel.setBackground(Color.BLACK);
-
-        // Add tiles to the chessboard and position them manually
-        chessBoardPanel.setLayout(null);
         return chessBoardPanel;
     }
 }
-
