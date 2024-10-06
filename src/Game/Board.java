@@ -2,23 +2,61 @@ package Game;
 
 import Game.Pieces.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.lang.Math.abs;
 
 public class Board {
-    public int[] board;
+    // private int[] board;
     public HashMap<String, Integer> squareNumbers;
     public HashMap<Integer, String> squareNames;
+    private boolean whiteToMove;
+    private int enPassantSquare;
+    private List<Move> legalMoves;
+    private List<Piece> whitePieces;
+    private List<Piece> blackPieces;
 
     public Board(){
-        this.board = new int[64];
+        // this.board = new int[64];
 
         this.squareNumbers = createSquareHash();
         this.squareNames = createSquareNames();
+        this.whitePieces = new ArrayList<>();
+        this.blackPieces = new ArrayList<>();
 
-        createStandardBoard();
+        this.whiteToMove = true;
+        this.enPassantSquare = 0;
+        this.legalMoves = new ArrayList<>();
+    }
+
+    public List<Move> getLegalMoves() {
+        if (legalMoves.isEmpty()){
+            System.out.println("Legal moves hasn't been calculated, calculating...");
+            calculateLegalMoves();
+        }
+        return legalMoves;
+    }
+
+    private void calculateLegalMoves() {
+        // Step 1.  Calculate all normal moves
+        // Step 2. Remove all moves that put the king in check
+        // Step 3. Add castling moves
+        List<Move> allMoves = calculateAllMoves();
+        this.legalMoves = allMoves;
+    }
+
+    private List<Move> calculateAllMoves() {
+        List<Move> allMoves = new ArrayList<>();
+        List<Piece> piecesToMove = this.whiteToMove ? this.whitePieces : this.blackPieces;
+        // System.out.println("Nr of pieces to calculate moves for: " + piecesToMove.size());
+        for (Piece piece : piecesToMove) {
+            allMoves.addAll(piece.getMoves(this));
+        }
+        // System.out.println("Number of moves: " + allMoves.size());
+        return allMoves;
     }
 
     public void printBoard(){
@@ -33,26 +71,17 @@ public class Board {
         }
     }
 
-    public String getPieceOnSquare(final int squareIndex){
-        return switch (board[squareIndex]) {
-            case 1 -> "wP";
-            case 2 -> "wK";
-            case 3 -> "wQ";
-            case 4 -> "wB";
-            case 5 -> "wN";
-            case 6 -> "wR";
-            case -1 -> "bP";
-            case -2 -> "bK";
-            case -3 -> "bQ";
-            case -4 -> "bB";
-            case -5 -> "bN";
-            case -6 -> "bR";
-            case 0 -> "--";
-            default -> "ERROR";
-        };
+    public Piece getPieceOnSquare(final int squareIndex){
+
+        for (Piece piece : getAllPieces()) {
+            if (piece.getCurrentSquare() == squareIndex) {
+                return piece;
+            }
+        }
+        return null;
     }
 
-    private void createStandardBoard() {
+    public void createStandardBoard() {
         // White pieces
         int[] secondRow = getRowIndexes(2);
         for (int index : secondRow){
@@ -79,10 +108,23 @@ public class Board {
         setPiece(new Bishop(false, getSquareIndex("F8")));
         setPiece(new Knight(false, getSquareIndex("G8")));
         setPiece(new Rook(false, getSquareIndex("H8")));
+
+        calculateLegalMoves();
     }
 
-    private void setPiece(Piece piece) {
-        this.board[piece.getInitSquareIndex()] = piece.getPieceDesignator();
+    public List<Piece> getAllPieces(){
+        List<Piece> allPieces = this.whitePieces;
+        allPieces.addAll(this.blackPieces);
+        return allPieces;
+    }
+
+    public void setPiece(Piece piece) {
+        if (piece.isWhite()){
+            whitePieces.add(piece);
+        } else {
+            blackPieces.add(piece);
+        }
+        // this.board[piece.getInitSquareIndex()] = piece.getPieceDesignator();
     }
 
     private HashMap<String, Integer> createSquareHash(){
@@ -152,6 +194,14 @@ public class Board {
         }
 
         return rowIndexes;
+    }
+
+    public int[] getEdgeSquares(){
+        return new int[]{0, 1, 2, 3, 4, 5, 6, 7,
+                63, 62, 61, 60, 59, 58, 57, 56,
+                8, 16, 24, 32, 40, 48,
+                15, 23, 31, 39, 47, 55};
+
     }
 
     public String[] getSquareNames(int[] squares){

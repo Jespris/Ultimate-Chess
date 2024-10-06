@@ -1,12 +1,14 @@
 package Game;
 
+import Game.Pieces.Piece;
+
 public class Move {
     private int fromSquare;
     private int toSquare;
-    private int pieceMoved;
-    private int pieceCaptured;
+    private Piece pieceMoved;
+    private Piece pieceCaptured;
 
-    public Move(int fromSquare, int toSquare, int pieceMoved, int pieceCaptured) {
+    public Move(int fromSquare, int toSquare, Piece pieceMoved, Piece pieceCaptured) {
         this.fromSquare = fromSquare;
         this.toSquare = toSquare;
         this.pieceMoved = pieceMoved;

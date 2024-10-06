@@ -9,6 +9,7 @@ public class Main {
         System.out.println("Hello world!");
 
         Board board = new Board();
+        board.createStandardBoard();
         board.printBoard();
 
         ChessGameLayout gameLayout = new ChessGameLayout(board);

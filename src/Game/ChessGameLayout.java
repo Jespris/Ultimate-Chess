@@ -96,7 +96,7 @@ public class ChessGameLayout extends JFrame {
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
                 JPanel tile = new JPanel(null);  // Null layout for placing the piece and square name
-                tile.setBackground((row + col) % 2 == 0 ? Color.WHITE : Color.GREEN);  // Alternate colors
+                tile.setBackground((row + col) % 2 == 0 ? Color.LIGHT_GRAY : Color.DARK_GRAY);  // Alternate colors
                 tiles[row][col] = tile;
                 chessBoardPanel.add(tile);
 
@@ -126,7 +126,7 @@ public class ChessGameLayout extends JFrame {
                 }
 
                 // Get the piece for this board position from the board object
-                String pieceName = board.getPieceOnSquare(boardIndex);
+                String pieceName = board.getPieceOnSquare(boardIndex).getPieceName();
                 if (!pieceName.equals("--")) {
                     // If there's a piece on this square, add the corresponding image
                     JLabel pieceLabel = new JLabel(pieceIcons.get(pieceName));
