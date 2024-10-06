@@ -32,6 +32,10 @@ public class Board {
         this.legalMoves = new ArrayList<>();
     }
 
+    private void switchTurn(){
+        this.whiteToMove = !this.whiteToMove;
+    }
+
     public List<Move> getMovesFromSquare(int squareIndex){
         List<Move> moves = new ArrayList<>();
         for (Move move : getLegalMoves()) {
@@ -47,7 +51,7 @@ public class Board {
             System.out.println("Legal moves hasn't been calculated, calculating...");
             calculateLegalMoves();
         }
-        return legalMoves;
+        return new ArrayList<>(legalMoves);
     }
 
     private void calculateLegalMoves() {
@@ -130,12 +134,13 @@ public class Board {
     }
 
     public List<Piece> getAllPieces(){
-        List<Piece> allPieces = this.whitePieces;
-        allPieces.addAll(this.blackPieces);
+        List<Piece> allPieces = new ArrayList<>(this.whitePieces);  // Create a new list to avoid modifying the original list
+        allPieces.addAll(this.blackPieces);  // Safely combine white and black pieces
         return allPieces;
     }
 
-    public void setPiece(Piece piece) {
+
+    public void setPiece(final Piece piece) {
         if (piece.isWhite()){
             whitePieces.add(piece);
         } else {

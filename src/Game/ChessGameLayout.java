@@ -160,12 +160,13 @@ public class ChessGameLayout extends JFrame {
         // If a tile is already selected, reset its color
         if (selectedTile != null) {
             resetTileColor(selectedTile);
+            // TODO: check if the new tile is a legal move and make the move, deselect, OR
+            // TODO: check if the previous tile has legal moves to make and the new tile is NOT a legal move -> deselect
+            // Highlight the new selected tile
+            originalTileColor = tile.getBackground();  // Store the original color
+            tile.setBackground(Color.YELLOW);  // Highlight the selected tile
+            selectedTile = tile;  // Set the new selected tile
         }
-
-        // Highlight the new selected tile
-        originalTileColor = tile.getBackground();  // Store the original color
-        tile.setBackground(Color.YELLOW);  // Highlight the selected tile
-        selectedTile = tile;  // Set the new selected tile
 
         // If the piece is the correct color to move, display legal moves
         if (pieceOnSquare != null && pieceOnSquare.isWhite() == board.getWhiteToMove()) {

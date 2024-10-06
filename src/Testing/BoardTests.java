@@ -2,6 +2,7 @@ package Testing;
 
 import Game.Board;
 import Game.Pieces.Bishop;
+import Game.Pieces.Knight;
 import Game.Pieces.Queen;
 import Game.Pieces.Rook;
 import org.junit.Test;
@@ -76,5 +77,33 @@ public class BoardTests {
         board.setPiece(new Bishop(true, board.getSquareIndex("D1")));
         nrLegalMoves = board.getLegalMoves().size();
         assertEquals(7, nrLegalMoves);
+    }
+
+    @Test
+    public void TestKnightMoves(){
+        Board board = new Board();
+        board.setPiece(new Knight(true, board.getSquareIndex("E4")));
+        int nrLegalMoves = board.getLegalMoves().size();
+        assertEquals(8, nrLegalMoves);
+
+        board = new Board();
+        board.setPiece(new Knight(true, board.getSquareIndex("G4")));
+        nrLegalMoves = board.getLegalMoves().size();
+        assertEquals(6, nrLegalMoves);
+
+        board = new Board();
+        board.setPiece(new Knight(true, board.getSquareIndex("D1")));
+        nrLegalMoves = board.getLegalMoves().size();
+        assertEquals(4, nrLegalMoves);
+
+        board = new Board();
+        board.setPiece(new Knight(true, board.getSquareIndex("A8")));
+        nrLegalMoves = board.getLegalMoves().size();
+        assertEquals(2, nrLegalMoves);
+
+        board = new Board();
+        board.setPiece(new Knight(true, board.getSquareIndex("H1")));
+        nrLegalMoves = board.getLegalMoves().size();
+        assertEquals(2, nrLegalMoves);
     }
 }
