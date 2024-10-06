@@ -16,8 +16,13 @@ public class ChessGameLayout extends JFrame {
     private Map<String, ImageIcon> pieceIcons;  // Map to hold piece images
     private JLayeredPane[][] tiles;  // Store references to the tiles on the board
 
+    private JLayeredPane selectedTile;
+    private Color originalTileColor;
+
     public ChessGameLayout(Board board) {
         this.board = board;  // Initialize the board
+        this.selectedTile = null;
+        this.originalTileColor = null;
 
         // Load piece images into the map
         loadPieceIcons();
@@ -143,6 +148,24 @@ public class ChessGameLayout extends JFrame {
     // Handle click events on tiles, including displaying legal moves
     private void handleTileClick(int boardIndex, JLayeredPane tile, int row, int col) {
         Piece pieceOnSquare = board.getPieceOnSquare(boardIndex);
+        // If the clicked tile is already selected, deselect it
+        if (selectedTile == tile) {
+            // Deselect the tile and clear the dots
+            resetTileColor(selectedTile);
+            clearDotsFromBoard();
+            selectedTile = null;  // No tile is selected now
+            return;
+        }
+
+        // If a tile is already selected, reset its color
+        if (selectedTile != null) {
+            resetTileColor(selectedTile);
+        }
+
+        // Highlight the new selected tile
+        originalTileColor = tile.getBackground();  // Store the original color
+        tile.setBackground(Color.YELLOW);  // Highlight the selected tile
+        selectedTile = tile;  // Set the new selected tile
 
         // If the piece is the correct color to move, display legal moves
         if (pieceOnSquare != null && pieceOnSquare.isWhite() == board.getWhiteToMove()) {
@@ -153,6 +176,11 @@ public class ChessGameLayout extends JFrame {
             clearDotsFromBoard();  // Clear old dots if wrong piece is clicked
         }
     }
+
+    private void resetTileColor(JLayeredPane tile) {
+        tile.setBackground(this.originalTileColor);
+    }
+
 
     // Display dots on the destination tiles for legal moves
     private void displayLegalMoves(List<Move> moves) {
