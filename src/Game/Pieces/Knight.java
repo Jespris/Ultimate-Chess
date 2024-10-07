@@ -1,7 +1,9 @@
 package Game.Pieces;
 
 import Game.Board;
+import Game.CaptureMove;
 import Game.Move;
+import Game.StandardMove;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +27,11 @@ public class Knight extends Piece {
                 if (pieceOnSquare != null) {
                     if (pieceOnSquare.isWhite() != this.isWhite()){
                         // Capture move
-                        moves.add(new Move(current, destination, this, pieceOnSquare));
+                        moves.add(new CaptureMove(current, destination, this, pieceOnSquare));
                     }
                 } else {
                     // No piece on destination tile
-                    moves.add(new Move(current, destination, this, null));
+                    moves.add(new StandardMove(current, destination, this));
                 }
             }
         }

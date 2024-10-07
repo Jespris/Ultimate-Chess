@@ -1,7 +1,6 @@
 package Game.Pieces;
 
-import Game.Board;
-import Game.Move;
+import Game.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,19 +17,19 @@ public class Pawn extends Piece {
         int[] captureDirections = {7*direction, 9*direction};
         int current = getCurrentSquare();
         int[] startingRow = isWhite() ? board.getRowIndexes(2) : board.getRowIndexes(7);
+        int[] promotionRow = isWhite() ? board.getRowIndexes(8) : board.getRowIndexes(1);
         boolean firstMove = contains(startingRow, current);
 
         // move one square
         int destination = current + direction * 8;
         Piece pieceOnSquare = board.getPieceOnSquare(destination);
         if (pieceOnSquare == null) {
-            moves.add(new Move(current, destination, this, null));
+            moves.add(new StandardMove(current, destination, this));
             if (firstMove) {
                 int doubleMoveDestination = destination + direction * 8;
                 pieceOnSquare = board.getPieceOnSquare(doubleMoveDestination);
                 if (pieceOnSquare == null) {
-                    // TODO: add subclasses to Move to easily identify the enpassant square
-                    moves.add(new Move(current, doubleMoveDestination, this, null));
+                    moves.add(new DoublePawnMove(current, doubleMoveDestination, this));
                 }
             }
         }
@@ -48,13 +47,13 @@ public class Pawn extends Piece {
             if (pieceOnSquare != null) {
                 if (pieceOnSquare.isWhite() != isWhite()) {
                     // opponent capturable piece
-                    moves.add(new Move(current, captureDestination, this, pieceOnSquare));
+                    moves.add(new CaptureMove(current, captureDestination, this, pieceOnSquare));
                 }
             } else {
                 if (captureDestination == board.getEnPassantSquare()) {
                     Pawn enPassantPawn = board.getEnPassantPawn();
-                    assert enPassantPawn != null;
-                    moves.add(new Move(current, captureDestination, this, enPassantPawn));
+                    assert enPassantPawn != null; // TODO: remove redundant check that the board has stored the pawn
+                    moves.add(new EnPassantCapture(current, captureDestination, this));
                 }
             }
         }

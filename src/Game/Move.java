@@ -2,7 +2,7 @@ package Game;
 
 import Game.Pieces.Piece;
 
-public class Move {
+public abstract class Move {
     private int fromSquare;
     private int toSquare;
     private Piece pieceMoved;
@@ -13,6 +13,26 @@ public class Move {
         this.toSquare = toSquare;
         this.pieceMoved = pieceMoved;
         this.pieceCaptured = pieceCaptured;
+    }
+
+    public boolean isCaptureMove(){
+        return pieceCaptured != null;
+    }
+
+    public boolean isCastleMove(){
+        return false;
+    }
+
+    public boolean isPromotionMove(){
+        return false;
+    }
+
+    public boolean isPawnDoubleMove(){
+        return false;
+    }
+
+    public boolean isEnPassantCaptureMove(){
+        return false;
     }
 
     public int getFromSquare() {
