@@ -1,5 +1,6 @@
 package Game;
 
+import Game.Moves.Move;
 import Game.Pieces.*;
 
 import java.util.ArrayList;
@@ -34,8 +35,54 @@ public class Board {
         this.legalMoves = new ArrayList<>();
     }
 
+    public Board makeMove(Move move){
+        System.out.println("Doing a move!");
+        // Step 0. Reset enPassantSquare and pawn
+        this.enPassantPawn = null;
+        this.enPassantSquare = -1;
+        // Step 1. Remove captured piece
+        if (move.isCaptureMove()){
+            // This should work for enPassantMoves
+            List<Piece> opponentPieces = this.whiteToMove ? this.blackPieces : this.whitePieces;
+            boolean removeSuccess = opponentPieces.remove(move.getPieceCaptured());
+            System.out.println("Removed opponents piece successfully? " + removeSuccess);
+        }
+        List<Piece> myPieces = this.whiteToMove ? this.whitePieces : this.blackPieces;
+        // Step 2. Is it a promotion move?
+        if (move.isPromotionMove()) {
+            // Step 2.A remove the pawn
+            boolean removeSuccess = myPieces.remove(move.getPieceMoved());
+            System.out.println("Removed the promoted pawn successfully? " + removeSuccess);
+            // Step 2.B add the promoted piece
+            Piece promotionPiece = move.getPromotionPiece();
+            assert promotionPiece != null;
+            myPieces.add(promotionPiece);
+        }
+        // TODO: Step 3. Is it a castle move?
+        // Step 4. Its a normal move
+        move.getPieceMoved().setCurrentSquare(move.getToSquare());
+        if (move.isPawnDoubleMove()){
+            this.enPassantSquare = move.getEnPassantSquare();
+            this.enPassantPawn = (Pawn) move.getPieceMoved();
+        }
+        switchTurn();
+        calculateLegalMoves();
+        return this;
+    }
+
     private void switchTurn(){
         this.whiteToMove = !this.whiteToMove;
+    }
+
+    public Move moveSelector(int start, int end){
+        for (Move move : legalMoves){
+            if (move.getFromSquare() == start && move.getToSquare() == end){
+                // TODO: promotion move only returns one of 4 possible promotion moves
+                System.out.println("Found a legal move to make!");
+                return move;
+            }
+        }
+        return null;
     }
 
     public List<Move> getMovesFromSquare(int squareIndex){
@@ -58,9 +105,10 @@ public class Board {
 
     private void calculateLegalMoves() {
         // Step 1.  Calculate all normal moves
-        // Step 2. Remove all moves that put the king in check
-        // Step 3. Add castling moves
         List<Move> allMoves = calculateAllMoves();
+        // TODO: Step 2. Remove all moves that put the king in check
+        // TODO: Step 3. Add castling moves
+
         this.legalMoves = allMoves;
     }
 

@@ -1,9 +1,9 @@
 package Game.Pieces;
 
 import Game.Board;
-import Game.CaptureMove;
-import Game.Move;
-import Game.StandardMove;
+import Game.Moves.CaptureMove;
+import Game.Moves.Move;
+import Game.Moves.StandardMove;
 
 import java.util.ArrayList;
 import java.util.List;

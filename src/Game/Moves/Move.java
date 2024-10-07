@@ -1,4 +1,4 @@
-package Game;
+package Game.Moves;
 
 import Game.Pieces.Piece;
 
@@ -49,5 +49,13 @@ public abstract class Move {
 
     public Piece getPieceMoved() {
         return pieceMoved;
+    }
+
+    public Piece getPromotionPiece(){
+        return null;
+    }
+
+    public int getEnPassantSquare(){
+        return -1;
     }
 }

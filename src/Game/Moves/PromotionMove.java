@@ -1,4 +1,4 @@
-package Game;
+package Game.Moves;
 
 import Game.Pieces.Piece;
 

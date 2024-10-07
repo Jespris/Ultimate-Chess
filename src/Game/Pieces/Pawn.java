@@ -1,6 +1,7 @@
 package Game.Pieces;
 
 import Game.*;
+import Game.Moves.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ public class Pawn extends Piece {
                     int doubleMoveDestination = destination + direction * 8;
                     pieceOnSquare = board.getPieceOnSquare(doubleMoveDestination);
                     if (pieceOnSquare == null) {
-                        moves.add(new DoublePawnMove(current, doubleMoveDestination, this));
+                        moves.add(new DoublePawnMove(current, doubleMoveDestination, this, destination));
                     }
                 }
             }

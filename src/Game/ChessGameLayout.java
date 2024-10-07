@@ -1,5 +1,6 @@
 package Game;
 
+import Game.Moves.Move;
 import Game.Pieces.Piece;
 
 import javax.swing.*;
@@ -17,11 +18,13 @@ public class ChessGameLayout extends JFrame {
     private JLayeredPane[][] tiles;  // Store references to the tiles on the board
 
     private JLayeredPane selectedTile;
+    private int selectedTileIndex;
     private Color originalTileColor;
 
     public ChessGameLayout(Board board) {
         this.board = board;  // Initialize the board
         this.selectedTile = null;
+        this.selectedTileIndex = -1;
         this.originalTileColor = null;
 
         // Load piece images into the map
@@ -147,36 +150,82 @@ public class ChessGameLayout extends JFrame {
 
     // Handle click events on tiles, including displaying legal moves
     private void handleTileClick(int boardIndex, JLayeredPane tile, int row, int col) {
+        clearDotsFromBoard();  // Always clear old dots on new click
         Piece pieceOnSquare = board.getPieceOnSquare(boardIndex);
         // If the clicked tile is already selected, deselect it
         if (selectedTile == tile) {
             // Deselect the tile and clear the dots
             resetTileColor(selectedTile);
-            clearDotsFromBoard();
             selectedTile = null;  // No tile is selected now
             return;
         }
-
         // If a tile is already selected, reset its color
         if (selectedTile != null) {
             resetTileColor(selectedTile);
-            // TODO: check if the new tile is a legal move and make the move, deselect, OR
-            // TODO: check if the previous tile has legal moves to make and the new tile is NOT a legal move -> deselect
-            // Highlight the new selected tile
-            originalTileColor = tile.getBackground();  // Store the original color
-            tile.setBackground(Color.YELLOW);  // Highlight the selected tile
-            selectedTile = tile;  // Set the new selected tile
-        }
-
-        // If the piece is the correct color to move, display legal moves
-        if (pieceOnSquare != null && pieceOnSquare.isWhite() == board.getWhiteToMove()) {
-            List<Move> pieceMoves = board.getMovesFromSquare(boardIndex);
-            clearDotsFromBoard();  // Clear old dots
-            displayLegalMoves(pieceMoves);  // Display dots for legal moves
+            Move possibleMove = board.moveSelector(selectedTileIndex, boardIndex);
+            if (possibleMove != null) {
+                // There is a possible move to make, make it
+                this.board = board.makeMove(possibleMove);
+                // Reset the selected tile
+                selectedTile = null;
+                selectedTileIndex = -1;
+                // Refresh the board
+                refreshBoard();
+            } else {
+                // Highlight the new selected tile
+                originalTileColor = tile.getBackground();  // Store the original color
+                tile.setBackground(Color.YELLOW);  // Highlight the selected tile
+                selectedTile = tile;  // Set the new selected tile
+                selectedTileIndex = boardIndex;
+            }
         } else {
-            clearDotsFromBoard();  // Clear old dots if wrong piece is clicked
+            // Selected tile is null
+            // If the piece is the correct color to move, display legal moves
+            if (pieceOnSquare != null && pieceOnSquare.isWhite() == board.getWhiteToMove()) {
+                List<Move> pieceMoves = board.getMovesFromSquare(boardIndex);
+
+                displayLegalMoves(pieceMoves);  // Display dots for legal moves
+                originalTileColor = tile.getBackground();  // Store the original color
+                tile.setBackground(Color.YELLOW);  // Highlight the selected tile
+                selectedTile = tile;
+                selectedTileIndex = boardIndex;
+            } else {
+                // Not own piece clicked
+                originalTileColor = tile.getBackground();  // Store the original color
+                tile.setBackground(Color.YELLOW);  // Highlight the selected tile
+                selectedTile = tile;
+                selectedTileIndex = boardIndex;
+            }
         }
     }
+
+    // Refresh the board to display the updated board state
+    private void refreshBoard() {
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                JLayeredPane tile = tiles[row][col];
+                int boardIndex = row * 8 + col;
+
+                // Clear all components from the tile (pieces and dots)
+                tile.removeAll();
+
+                // Add the row and file labels again (if necessary)
+                addRowAndFileLabels(tile, row, col);
+
+                // Get the piece for this square and add it if it's not null
+                Piece pieceOnSquare = board.getPieceOnSquare(boardIndex);
+                if (pieceOnSquare != null) {
+                    JLabel pieceLabel = new JLabel(pieceIcons.get(pieceOnSquare.getPieceName()));
+                    pieceLabel.setBounds(0, 0, tile.getWidth(), tile.getHeight());  // Resize to fit the tile
+                    tile.add(pieceLabel, JLayeredPane.DEFAULT_LAYER);  // Add the piece to the default layer
+                }
+
+                // Repaint the tile to ensure changes are shown
+                tile.repaint();
+            }
+        }
+    }
+
 
     private void resetTileColor(JLayeredPane tile) {
         tile.setBackground(this.originalTileColor);

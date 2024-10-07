@@ -1,7 +1,7 @@
 package Game.Pieces;
 
 import Game.Board;
-import Game.Move;
+import Game.Moves.Move;
 
 import java.util.ArrayList;
 import java.util.List;

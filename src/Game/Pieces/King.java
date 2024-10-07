@@ -1,7 +1,9 @@
 package Game.Pieces;
 
 import Game.Board;
-import Game.Move;
+import Game.Moves.CaptureMove;
+import Game.Moves.Move;
+import Game.Moves.StandardMove;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +27,10 @@ public class King extends Piece {
                     if (pieceOnSquare.isWhite() != this.isWhite()){
                         // Can capture but then break loop
                         // System.out.println("There is a capturable piece on the destination square.");
-                        moves.add(new Move(current, destination, this, pieceOnSquare));
+                        moves.add(new CaptureMove(current, destination, this, pieceOnSquare));
                     }
                 } else {
-                    moves.add(new Move(current, destination, this, null));
+                    moves.add(new StandardMove(current, destination, this));
                 }
             }
         }
