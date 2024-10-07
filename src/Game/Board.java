@@ -15,6 +15,7 @@ public class Board {
     public HashMap<Integer, String> squareNames;
     private boolean whiteToMove;
     private int enPassantSquare;
+    private Pawn enPassantPawn;
     private List<Move> legalMoves;
     private List<Piece> whitePieces;
     private List<Piece> blackPieces;
@@ -28,7 +29,8 @@ public class Board {
         this.blackPieces = new ArrayList<>();
 
         this.whiteToMove = true;
-        this.enPassantSquare = 0;
+        this.enPassantSquare = -1;
+        this.enPassantPawn = null;
         this.legalMoves = new ArrayList<>();
     }
 
@@ -242,6 +244,14 @@ public class Board {
 
     public boolean getWhiteToMove() {
         return this.whiteToMove;
+    }
+
+    public int getEnPassantSquare() {
+        return this.enPassantSquare;
+    }
+
+    public Pawn getEnPassantPawn(){
+        return this.enPassantPawn;
     }
 }
 

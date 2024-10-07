@@ -11,12 +11,7 @@ public class Main {
         System.out.println("Hello world!");
 
         Board board = new Board();
-        // board.createStandardBoard();
-        board.setPiece(new Queen(true, board.getSquareIndex("E4")));
-        board.setPiece(new Queen(true, board.getSquareIndex("D1")));
-        board.setPiece(new Knight(true, board.getSquareIndex("G7")));
-        board.setPiece(new Knight(true, board.getSquareIndex("A1")));
-        board.setPiece(new Knight(true, board.getSquareIndex("C6")));
+        board.createStandardBoard();
 
         board.printBoard();
 
