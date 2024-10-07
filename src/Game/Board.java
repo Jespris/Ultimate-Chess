@@ -20,6 +20,7 @@ public class Board {
     private List<Move> legalMoves;
     private List<Piece> whitePieces;
     private List<Piece> blackPieces;
+    private Move previousMove;
 
     public Board(){
         // this.board = new int[64];
@@ -33,9 +34,12 @@ public class Board {
         this.enPassantSquare = -1;
         this.enPassantPawn = null;
         this.legalMoves = new ArrayList<>();
+
+        this.previousMove = null;
     }
 
     public Board makeMove(Move move){
+        this.previousMove = move;
         System.out.println("Doing a move!");
         // Step 0. Reset enPassantSquare and pawn
         this.enPassantPawn = null;
@@ -65,6 +69,39 @@ public class Board {
             this.enPassantSquare = move.getEnPassantSquare();
             this.enPassantPawn = (Pawn) move.getPieceMoved();
         }
+        switchTurn();
+        calculateLegalMoves();
+        return this;
+    }
+
+    public Board undoMove(){
+        System.out.println("Doing a move!");
+        // Step 0. Reset enPassantSquare and pawn
+        this.enPassantPawn = null;
+        this.enPassantSquare = -1;
+        List<Piece> myPieces = this.whiteToMove ? this.whitePieces : this.blackPieces;
+        // Step 1. Restore captured piece
+        if (this.previousMove.isCaptureMove()){
+            if (this.previousMove.isEnPassantCaptureMove()){
+                // TODO: handle enPassantCapture undo move
+            } else {
+                myPieces.add(this.previousMove.getPieceCaptured());
+            }
+
+        }
+        List<Piece> opponentPieces = this.whiteToMove ? this.blackPieces : this.whitePieces;
+        // Step 2. Was it a promotion move?
+        if (previousMove.isPromotionMove()) {
+            // Step 2.A restore the pawn
+            opponentPieces.add(previousMove.getPieceMoved());
+            // Step 2.B remove the promoted piece
+            Piece promotionPiece = previousMove.getPromotionPiece();
+            assert promotionPiece != null;
+            myPieces.remove(promotionPiece);
+        }
+        // TODO: Step 3. Is it a castle move?
+        // Step 4. Its a normal move
+        previousMove.getPieceMoved().setCurrentSquare(previousMove.getFromSquare());
         switchTurn();
         calculateLegalMoves();
         return this;

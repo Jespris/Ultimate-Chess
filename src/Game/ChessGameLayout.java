@@ -5,6 +5,7 @@ import Game.Pieces.Piece;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.HashMap;
@@ -38,11 +39,13 @@ public class ChessGameLayout extends JFrame {
         JPanel mainPanel = new JPanel(new BorderLayout());
 
         // Create placeholders for the top settings and customization
-        JPanel topPanel = createPanelWithLabel("Settings and Customization", Color.LIGHT_GRAY, new Dimension(1000, 80));
         JPanel leftPanel = createPanelWithLabel("Information (Left)", Color.BLACK, new Dimension(150, 800));
         JPanel rightPanel = createPanelWithLabel("Information (Right)", Color.BLACK, new Dimension(150, 800));
         JPanel topPlayerPanel = createPanelWithLabel("Name | Clock", Color.BLACK, new Dimension(600, 50));
         JPanel bottomPlayerPanel = createPanelWithLabel("Name | Clock", Color.BLACK, new Dimension(600, 50));
+
+        // Create the top panel and add a button for undoing the move
+        JPanel topPanel = createTopPanelWithUndoButton();
 
         // Create the chess board panel
         JPanel chessBoardPanel = createChessBoard();
@@ -59,6 +62,9 @@ public class ChessGameLayout extends JFrame {
         mainPanel.add(centerPanel, BorderLayout.CENTER);
         mainPanel.add(rightPanel, BorderLayout.EAST);
 
+        // Add key binding for undo move (left arrow key)
+        addUndoKeyBinding(mainPanel);
+
         // Add the main panel to the frame
         add(mainPanel, BorderLayout.CENTER);
 
@@ -66,6 +72,45 @@ public class ChessGameLayout extends JFrame {
         setSize(1000, 800);
         setVisible(true);
     }
+
+    private JPanel createTopPanelWithUndoButton() {
+        JPanel topPanel = new JPanel();
+        topPanel.setBackground(Color.LIGHT_GRAY);
+        topPanel.setPreferredSize(new Dimension(1000, 80));
+
+        // Add label
+        topPanel.add(new JLabel("Settings and Customization"));
+
+        // Create the Undo button
+        JButton undoButton = new JButton("Undo Move");
+        undoButton.addActionListener(e -> {
+            this.board.undoMove();
+            refreshBoard();  // Refresh the board after undoing the move
+        });
+
+        // Add the button to the panel
+        topPanel.add(undoButton);
+
+        return topPanel;
+    }
+
+
+    private void addUndoKeyBinding(JComponent component) {
+        // Define the action to be performed
+        Action undoAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                board.undoMove();
+                refreshBoard();  // Refresh the board to show the previous state
+            }
+        };
+
+        // Add the key binding to the component for the left arrow key
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("LEFT"), "undoMove");
+        component.getActionMap().put("undoMove", undoAction);
+    }
+
 
     // Helper method to create panels with labels
     private JPanel createPanelWithLabel(String labelText, Color bgColor, Dimension size) {
