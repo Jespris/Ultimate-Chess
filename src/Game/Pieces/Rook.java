@@ -27,4 +27,9 @@ public class Rook extends Piece {
         }
         return moves;
     }
+
+    @Override
+    public boolean isRook() {
+        return true;
+    }
 }

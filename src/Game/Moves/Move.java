@@ -23,11 +23,19 @@ public abstract class Move {
         return false;
     }
 
+    public boolean isKingSideCastleMove(){
+        return false;
+    }
+
     public boolean isPromotionMove(){
         return false;
     }
 
     public boolean isPawnDoubleMove(){
+        return false;
+    }
+
+    public boolean isPawnPushMove(){
         return false;
     }
 

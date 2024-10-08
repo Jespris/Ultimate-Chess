@@ -54,4 +54,9 @@ public class King extends Piece {
         // Outside the board
         return false;
     }
+
+    @Override
+    public boolean isKing() {
+        return true;
+    }
 }

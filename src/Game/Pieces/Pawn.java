@@ -26,7 +26,7 @@ public class Pawn extends Piece {
         if (!contains(promotionRow, destination)) {
             Piece pieceOnSquare = board.getPieceOnSquare(destination);
             if (pieceOnSquare == null) {
-                moves.add(new StandardMove(current, destination, this));
+                moves.add(new PawnPushMove(current, destination, this));
                 if (firstMove) {
                     int doubleMoveDestination = destination + direction * 8;
                     pieceOnSquare = board.getPieceOnSquare(doubleMoveDestination);

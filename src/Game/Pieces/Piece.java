@@ -17,6 +17,7 @@ public abstract class Piece {
     private final boolean isWhite;
     private final int initSquareIndex;
     private int currentSquare;
+    private boolean hasMoved;
 
     public Piece(final char pieceName, final boolean isWhite, final int squareIndex) {
         this.pieceName = setPieceName(isWhite, pieceName);
@@ -24,6 +25,7 @@ public abstract class Piece {
         this.pieceDesignator = getDesignator();
         this.initSquareIndex = squareIndex;
         this.currentSquare = squareIndex;
+        this.hasMoved = false;
     }
 
     private String setPieceName(boolean isWhite, char pieceName) {
@@ -50,6 +52,18 @@ public abstract class Piece {
         }
     }
 
+    public boolean isRook(){
+        return false;
+    }
+
+    public void setHasMoved(boolean flag){
+        this.hasMoved = flag;
+    }
+
+    public boolean hasMoved(){
+        return this.hasMoved;
+    }
+
     public int getInitSquareIndex(){
         return this.initSquareIndex;
     }
@@ -72,8 +86,8 @@ public abstract class Piece {
         return this.currentSquare;
     }
 
-    public void setCurrentSquare(int currentSquare) {
-        this.currentSquare = currentSquare;
+    public void setCurrentSquare(int newSquare) {
+        this.currentSquare = newSquare;
     }
 
     public boolean contains(int[] arr, int target) {
@@ -114,5 +128,9 @@ public abstract class Piece {
             }
         }
         return moves;
+    }
+
+    public boolean isKing() {
+        return false;
     }
 }

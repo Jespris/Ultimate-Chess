@@ -1,12 +1,11 @@
 package Game;
 
+import Game.Moves.KingSideCastleMove;
 import Game.Moves.Move;
+import Game.Moves.QueenSideCastleMove;
 import Game.Pieces.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.Math.abs;
 
@@ -18,9 +17,14 @@ public class Board {
     private int enPassantSquare;
     private Pawn enPassantPawn;
     private List<Move> legalMoves;
+    List<Move> opponentMoves;
     private List<Piece> whitePieces;
+    private King whiteKing;
+    private King blackKing;
     private List<Piece> blackPieces;
     private Move previousMove;
+    private boolean[] whiteCastleRights;
+    private boolean[] blackCastleRights;
 
     public Board(){
         // this.board = new int[64];
@@ -34,8 +38,32 @@ public class Board {
         this.enPassantSquare = -1;
         this.enPassantPawn = null;
         this.legalMoves = new ArrayList<>();
+        this.opponentMoves = new ArrayList<>();
+
+        this.whiteCastleRights = new boolean[]{true, true}; // kingside, queenside
+        this.blackCastleRights = new boolean[]{true, true};
 
         this.previousMove = null;
+
+        // Set the kings on home squares
+        setPiece(new King(true, getSquareIndex("E1")));
+        setPiece(new King(false, getSquareIndex("E8")));
+    }
+
+    private boolean hasKingSideCastleRight(){
+        return this.whiteToMove ? this.whiteCastleRights[0] : this.blackCastleRights[0];
+    }
+
+    private void setWhiteKing(King king){
+        this.whiteKing = king;
+    }
+
+    private void setBlackKing(King king){
+        this.blackKing = king;
+    }
+
+    private boolean hasQueenSideCastleRight(){
+        return this.whiteToMove ? this.whiteCastleRights[1] : this.blackCastleRights[1];
     }
 
     public Board makeMove(Move move){
@@ -63,14 +91,38 @@ public class Board {
             myPieces.add(promotionPiece);
         }
         // TODO: Step 3. Is it a castle move?
+        if (move.isCastleMove()){
+            if (move.isKingSideCastleMove()){
+                // Grab the rook
+                int rookSquare = move.getToSquare() + 1;
+                Piece rookPiece = getPieceOnSquare(rookSquare);
+                assert rookPiece != null;
+                // Move the rook
+                rookPiece.setCurrentSquare(move.getToSquare() - 1);
+                // King moves normally
+            } else {
+                // Queen side castle
+                int rookSquare = move.getToSquare() - 2;
+                Piece rookPiece = getPieceOnSquare(rookSquare);
+                assert rookPiece != null;
+                // Move the rook
+                rookPiece.setCurrentSquare(move.getToSquare() + 1);
+            }
+            // Remove castling rights
+            removeCastleRight(true);
+            removeCastleRight(false);
+        }
         // Step 4. Its a normal move
         move.getPieceMoved().setCurrentSquare(move.getToSquare());
+        move.getPieceMoved().setHasMoved(true);
         if (move.isPawnDoubleMove()){
             this.enPassantSquare = move.getEnPassantSquare();
             this.enPassantPawn = (Pawn) move.getPieceMoved();
         }
         switchTurn();
         calculateLegalMoves();
+
+        // Castling rights are updated when calculating castle moves
         return this;
     }
 
@@ -99,7 +151,36 @@ public class Board {
             assert promotionPiece != null;
             myPieces.remove(promotionPiece);
         }
-        // TODO: Step 3. Is it a castle move?
+        // Was it a castle move?
+        if (previousMove.isCastleMove()){
+            if (previousMove.isKingSideCastleMove()){
+                // Grab the rook
+                int rookSquare = previousMove.getToSquare() - 1;
+                Piece rookPiece = getPieceOnSquare(rookSquare);
+                assert rookPiece != null;
+                // Reset the rook
+                rookPiece.setCurrentSquare(rookPiece.getInitSquareIndex());
+                rookPiece.setHasMoved(false);
+                // King moves normally
+            } else {
+                // Queen side castle
+                int rookSquare = previousMove.getToSquare() + 1;
+                Piece rookPiece = getPieceOnSquare(rookSquare);
+                assert rookPiece != null;
+                // Reset the rook
+                rookPiece.setCurrentSquare(rookPiece.getInitSquareIndex());
+                rookPiece.setHasMoved(false);
+            }
+            // Reset castling rights, which should update correctly when calculating legal moves
+            switchTurn();
+            resetCastleRights();
+            King king = getCurrentKing();
+            // Move the king back
+            king.setCurrentSquare(king.getInitSquareIndex());
+            king.setHasMoved(false);
+            calculateLegalMoves();
+            return this;
+        }
         // Step 4. Its a normal move
         previousMove.getPieceMoved().setCurrentSquare(previousMove.getFromSquare());
         switchTurn();
@@ -107,7 +188,15 @@ public class Board {
         return this;
     }
 
-    private void switchTurn(){
+    private void resetCastleRights() {
+        if (this.whiteToMove){
+            this.whiteCastleRights = new boolean[]{true, true};
+        } else {
+            this.blackCastleRights = new boolean[]{true, true};
+        }
+    }
+
+    public void switchTurn(){
         this.whiteToMove = !this.whiteToMove;
     }
 
@@ -132,21 +221,148 @@ public class Board {
         return moves;
     }
 
-    public List<Move> getLegalMoves() {
+    public List<Move> getLegalMoves(){
+        // First, check if the board is valid, there are kings
+        if (this.whiteKing == null || this.blackKing == null){
+            System.out.println("Not a valid board, king is missing!");
+            return null;
+        }
         if (legalMoves.isEmpty()){
             System.out.println("Legal moves hasn't been calculated, calculating...");
             calculateLegalMoves();
         }
-        return new ArrayList<>(legalMoves);
+        return new ArrayList<>(this.legalMoves);
     }
 
     private void calculateLegalMoves() {
         // Step 1.  Calculate all normal moves
         List<Move> allMoves = calculateAllMoves();
-        // TODO: Step 2. Remove all moves that put the king in check
-        // TODO: Step 3. Add castling moves
+        // calculate opponent moves
+        switchTurn();
+        this.opponentMoves = calculateAllMoves();
+        switchTurn();
 
+        // TODO: Step 2. Remove all moves that put the king in check
+        // TODO: this method only removes moves that the king makes into check, and it's inefficient
+        allMoves.removeIf(move -> move.getPieceMoved() == getCurrentKing() && squareIsAttacked(move.getToSquare()));
+        // TODO: Step 3. Add castling moves
+        allMoves.addAll(calculateCastleMoves());
         this.legalMoves = allMoves;
+    }
+
+    private void removeCastleRight(boolean kingside){
+        if (this.whiteToMove){
+            if (kingside){
+                this.whiteCastleRights[0] = false;
+            } else {
+                this.whiteCastleRights[1] = false;
+            }
+        } else {
+            if (kingside){
+                this.blackCastleRights[0] = false;
+            } else {
+                this.blackCastleRights[1] = false;
+            }
+        }
+    }
+
+    private List<Move> calculateCastleMoves() {
+        List<Move> castleMoves = new ArrayList<>();
+
+        King king = getCurrentKing();
+        if (kingHasMoved(king) || hasNoCastleRights()){
+            // King has moved, remove both castle rights and return
+            removeCastleRight(true);
+            removeCastleRight(false);
+            return castleMoves;
+        }
+        int kingSquare = king.getCurrentSquare();
+        boolean[] castleRights = whiteToMove ? this.whiteCastleRights : this.blackCastleRights;
+        if (!isCheck()){
+            // We are not in check
+            if (castleRights[0]){
+                // We have King side castle rights
+                Piece kingSideRook = getPieceOnSquare(kingSquare + 3);
+                if (kingSideRook != null && kingSideRook.isRook() && !kingSideRook.hasMoved()){
+                    // Rook hasn't moved
+                    // Check if squares are empty and not under attack
+                    int kingBishop = kingSquare + 1;
+                    int kingKnight = kingSquare + 2;
+                    if (
+                            getPieceOnSquare(kingBishop) == null &&
+                            getPieceOnSquare(kingKnight) == null &&
+                            !squareIsAttacked(kingBishop) &&
+                            !squareIsAttacked(kingKnight)
+                    ){
+                        // We can castle!
+                        castleMoves.add(new KingSideCastleMove(kingSquare, kingSquare + 2, king));
+                    }
+                } else {
+                    // The rook has moved
+                    removeCastleRight(true);
+                }
+            }
+            if (castleRights[1]){
+                // We have queen side castle rights
+                Piece queenSideRook = getPieceOnSquare(king.getCurrentSquare() - 4);
+                if (queenSideRook != null && queenSideRook.isRook() && !queenSideRook.hasMoved()){
+                    // Rook hasn't moved
+                    // Check if squares are empty and not under attack
+                    int queen = kingSquare - 1;
+                    int queenBishop = kingSquare - 2;
+                    int queenKnight = kingSquare - 3;
+                    if (
+                            getPieceOnSquare(queen) == null &&
+                                    getPieceOnSquare(queenBishop) == null &&
+                                    getPieceOnSquare(queenKnight) == null &&
+                                    !squareIsAttacked(queen) &&
+                                    !squareIsAttacked(queenBishop)
+                    ){
+                        // We can castle!
+                        castleMoves.add(new QueenSideCastleMove(kingSquare, kingSquare - 2, king));
+                    }
+                } else {
+                    // The rook has moved
+                    removeCastleRight(false);
+                }
+            }
+        }
+        return castleMoves;
+    }
+
+    private boolean hasNoCastleRights() {
+        boolean[] castleRights = whiteToMove ? this.whiteCastleRights : this.blackCastleRights;
+        return !castleRights[0] && !castleRights[1];
+    }
+
+    private boolean isCheck() {
+        // If opponent has capture move on the king we are in check
+        King king = getCurrentKing();
+        int currentSquare = king.getCurrentSquare();
+        for (Move move : this.opponentMoves){
+            if (currentSquare == move.getToSquare()){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private King getCurrentKing() {
+        return this.whiteToMove ? this.whiteKing : this.blackKing;
+    }
+
+    private boolean kingHasMoved(King king){
+        return king.getCurrentSquare() != king.getInitSquareIndex();
+    }
+
+    private boolean squareIsAttacked(int squareIndex) {
+        for (Move move : this.opponentMoves){
+            if (move.getToSquare() == squareIndex && !move.isPawnPushMove()){
+                return true;
+            }
+        }
+        // TODO: check for pawn control
+        return false;
     }
 
     private List<Move> calculateAllMoves() {
@@ -230,8 +446,14 @@ public class Board {
     public void setPiece(final Piece piece) {
         if (piece.isWhite()){
             whitePieces.add(piece);
+            if (piece.isKing()){
+                setWhiteKing((King) piece);
+            }
         } else {
             blackPieces.add(piece);
+            if (piece.isKing()){
+                setBlackKing((King) piece);
+            }
         }
         // this.board[piece.getInitSquareIndex()] = piece.getPieceDesignator();
     }
