@@ -58,6 +58,14 @@ public class Board {
         return this.currentPlayer;
     }
 
+    public List<Piece> getWhitePieces(){
+        return this.whitePieces;
+    }
+
+    public List<Piece> getBlackPieces(){
+        return this.blackPieces;
+    }
+
     public List<Piece> getAllPieces() {
         return Stream.concat(this.whitePieces.stream(),
                 this.blackPieces.stream()).toList();
@@ -99,8 +107,8 @@ public class Board {
         builder.setPiece(new Rook(Alliance.WHITE, 63));
         builder.setPiece(new Knight(Alliance.WHITE, 62));
         builder.setPiece(new Bishop(Alliance.WHITE, 61));
-        builder.setPiece(new Queen(Alliance.WHITE, 60));
-        builder.setPiece(new King(Alliance.WHITE, 59, true, true));
+        builder.setPiece(new Queen(Alliance.WHITE, 59));
+        builder.setPiece(new King(Alliance.WHITE, 60, true, true));
         builder.setPiece(new Bishop(Alliance.WHITE, 58));
         builder.setPiece(new Knight(Alliance.WHITE, 57));
         builder.setPiece(new Rook(Alliance.WHITE, 56));
@@ -117,6 +125,13 @@ public class Board {
 
         builder.setMoveMaker(Alliance.WHITE);
         return builder.build();
+    }
+
+    public List<Move> getAllLegalMoves() {
+        List<Move> allLegalMoves = new ArrayList<>(this.whitePlayer.getLegalMoves());
+        allLegalMoves.addAll(this.blackPlayer.getLegalMoves());
+
+        return Collections.unmodifiableList(allLegalMoves);
     }
 
     public Pawn getEnPassantPawn(){

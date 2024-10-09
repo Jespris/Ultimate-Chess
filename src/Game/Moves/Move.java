@@ -63,7 +63,7 @@ public abstract class Move {
     }
 
     public int getDestination() {
-        return this.endCoordinate;
+        return this.endSquare;
     }
 
     public Piece getPieceMoved() {
@@ -140,7 +140,7 @@ public abstract class Move {
 
         @Override
         public String toString() {
-            return pieceMoved.getPieceType().toString() + "x" + BoardUtils.getChessNotationAtCoordinate(this.endCoordinate);
+            return pieceMoved.getPieceType().toString() + "x" + BoardUtils.getChessNotationAtCoordinate(this.endSquare);
         }
     }
 
@@ -182,7 +182,7 @@ public abstract class Move {
 
         @Override
         public String toString(){
-            return pieceMoved.getPieceType().toString() + "x" + BoardUtils.getChessNotationAtCoordinate(this.endCoordinate);
+            return pieceMoved.getPieceType().toString() + "x" + BoardUtils.getChessNotationAtCoordinate(this.endSquare);
         }
     }
 
@@ -269,7 +269,7 @@ public abstract class Move {
 
         @Override
         public String toString(){
-            return BoardUtils.getChessNotationAtCoordinate(this.pieceMoved.getPiecePosition()).charAt(0) + "x" + BoardUtils.getChessNotationAtCoordinate(this.endCoordinate);
+            return BoardUtils.getChessNotationAtCoordinate(this.pieceMoved.getPiecePosition()).charAt(0) + "x" + BoardUtils.getChessNotationAtCoordinate(this.endSquare);
         }
     }
 
@@ -286,7 +286,7 @@ public abstract class Move {
 
         @Override
         public String toString(){
-            return BoardUtils.getChessNotationAtCoordinate(this.pieceMoved.getPiecePosition()).charAt(0) + "x" + BoardUtils.getChessNotationAtCoordinate(this.endCoordinate);
+            return BoardUtils.getChessNotationAtCoordinate(this.pieceMoved.getPiecePosition()).charAt(0) + "x" + BoardUtils.getChessNotationAtCoordinate(this.endSquare);
         }
 
         @Override
@@ -338,7 +338,7 @@ public abstract class Move {
 
         @Override
         public String toString() {
-            return BoardUtils.getChessNotationAtCoordinate(this.endCoordinate);
+            return BoardUtils.getChessNotationAtCoordinate(this.endSquare);
         }
     }
 

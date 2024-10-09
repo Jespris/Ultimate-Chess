@@ -10,7 +10,7 @@ import Game.Pieces.Piece;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Player {
+public abstract class Player {
     protected final Board board;
     protected final King playerKing;
     protected final List<Move> legalMoves;
@@ -20,7 +20,9 @@ public class Player {
     Player(final Board board, final List<Move> legalMoves, final List<Move> opponentMoves){
         this.board = board;
         this.playerKing = establishKing();
-        this.legalMoves = List.copyOf(List.concat(legalMoves, calculateCastles(legalMoves, opponentMoves)));
+        List<Move> concatenatedMoves = new ArrayList<>(legalMoves);
+        concatenatedMoves.addAll(calculateCastles(legalMoves, opponentMoves));
+        this.legalMoves = List.copyOf(concatenatedMoves);
 
         this.isInCheck = !Player.calculateAttacksOnTile(this.playerKing.getPiecePosition(), opponentMoves).isEmpty();
     }

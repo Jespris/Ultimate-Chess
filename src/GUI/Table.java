@@ -93,7 +93,7 @@ public class Table extends Observable {
     }
 
     private String getDefaultPieceIconPath() {
-        return "art/ChessPieces/";
+        return "src/resources/pieceImages/";
     }
 
     public void reset(){
@@ -276,11 +276,7 @@ public class Table extends Observable {
     }
 
     private static void savePGNFile(final File pgnFile) {
-        try{
-            writeGameToPGNFile(pgnFile, Table.get().getMoveLog());
-        } catch (final IOException e){
-            e.printStackTrace();
-        }
+        System.out.println("NOT IMPLEMENTED!!!");
     }
 
     private static void loadPGNFile(File pgnFile){
@@ -560,7 +556,7 @@ public class Table extends Observable {
                     final String pieceString = board.getPiece(this.tileID).getPieceAlliance().toString().charAt(0) + "" +
                             board.getPiece(this.tileID).toString();
                     final BufferedImage image = ImageIO.read(
-                            new File(pieceIconPath + pieceString + ".gif"));
+                            new File(pieceIconPath + pieceString + ".png"));
                     add(new JLabel(new ImageIcon(image)));
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -610,7 +606,11 @@ public class Table extends Observable {
                 if(humanMovePiece.getPieceType() == Piece.PieceType.KING && humanMovePiece.isFirstMove()){
                     final List<Move> includesCastleMoves = new ArrayList<>(board.currentPlayer().calculateCastles(board.currentPlayer().getLegalMoves(),
                             board.currentPlayer().getOpponent().getLegalMoves()));
-                    return List.copyOf(List.concat(humanMovePiece.calculateLegalMoves(board), includesCastleMoves));
+
+                    List<Move> legalMoves = new ArrayList<>(humanMovePiece.calculateLegalMoves(board));
+                    legalMoves.addAll(includesCastleMoves);
+
+                    return List.copyOf(legalMoves);
                 }
                 // if no castle moves, return regular moves
                 return humanMovePiece.calculateLegalMoves(board);
@@ -634,7 +634,9 @@ public class Table extends Observable {
         FLIPPED {
             @Override
             List<TilePanel> traverse(List<TilePanel> boardTiles) {
-                return Lists.reverse(boardTiles);
+                List<TilePanel> reversedTiles = new ArrayList<>(boardTiles); // Create a copy to avoid mutating the original list
+                Collections.reverse(reversedTiles); // Reverse the copied list
+                return reversedTiles; // Return the reversed list
             }
 
             @Override
