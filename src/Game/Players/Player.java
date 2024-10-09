@@ -24,7 +24,11 @@ public abstract class Player {
         concatenatedMoves.addAll(calculateCastles(legalMoves, opponentMoves));
         this.legalMoves = List.copyOf(concatenatedMoves);
 
-        this.isInCheck = !Player.calculateAttacksOnTile(this.playerKing.getPiecePosition(), opponentMoves).isEmpty();
+        if (this.playerKing == null){
+            this.isInCheck = false;
+        } else {
+            this.isInCheck = !Player.calculateAttacksOnTile(this.playerKing.getPiecePosition(), opponentMoves).isEmpty();
+        }
     }
 
     public King getPlayerKing(){
@@ -53,7 +57,8 @@ public abstract class Player {
                 return (King)piece;
             }
         }
-        throw new RuntimeException("No king was found, not a valid board!");
+        // throw new RuntimeException("No king was found, not a valid board!");
+        return null;
     }
 
     public boolean isMoveLegal(final Move move){
@@ -109,6 +114,10 @@ public abstract class Player {
     public abstract List<Move> calculateCastles(final List<Move> playerLegalMoves, final List<Move> opponentLegalMoves);
 
     protected boolean hasCastleOpportunities(){
+        if (this.playerKing == null){
+            System.out.println("No king found! Cannot castle");
+            return false;
+        }
         return !this.isInCheck &&
                 !this.playerKing.hasCastled() &&
                 (this.playerKing.isKingSideCastleCapable() || this.playerKing.isQueenSideCastleCapable());

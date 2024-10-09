@@ -173,6 +173,10 @@ public class Board {
         }
 
         public Board build(){
+            if (this.nextMoveMaker == null){
+                // Assume white to move
+                this.nextMoveMaker = Alliance.WHITE;
+            }
             return new Board(this);
         }
     }
