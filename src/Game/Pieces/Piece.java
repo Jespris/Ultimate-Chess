@@ -1,136 +1,108 @@
 package Game.Pieces;
 
-import Game.Board;
-import Game.Moves.CaptureMove;
+import Game.Board.Board;
 import Game.Moves.Move;
-import Game.Moves.StandardMove;
+import Game.Players.Alliance;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public abstract class Piece {
 
-    private final String pieceName;
-    private final int pieceDesignator;
-    private final boolean isWhite;
-    private final int initSquareIndex;
-    private int currentSquare;
-    private boolean hasMoved;
+    protected final PieceType pieceType;
+    protected final int piecePosition;
+    protected final Alliance pieceAlliance;
+    protected final boolean isFirstMove;
+    private final int cashedHashCode;
 
-    public Piece(final char pieceName, final boolean isWhite, final int squareIndex) {
-        this.pieceName = setPieceName(isWhite, pieceName);
-        this.isWhite = isWhite;
-        this.pieceDesignator = getDesignator();
-        this.initSquareIndex = squareIndex;
-        this.currentSquare = squareIndex;
-        this.hasMoved = false;
+    Piece(final PieceType pieceType,
+          final Alliance pieceAlliance,
+          final int piecePosition,
+          final boolean isFirstMove){
+        this.pieceType = pieceType;
+        this.piecePosition = piecePosition;
+        this.pieceAlliance = pieceAlliance;
+        this.isFirstMove = isFirstMove;
+        this.cashedHashCode = computeHashCode();
     }
 
-    private String setPieceName(boolean isWhite, char pieceName) {
-        if (isWhite) {
-            return 'w' + String.valueOf(pieceName);
-        } else {
-            return 'b' + String.valueOf(pieceName);
+    private int computeHashCode() {
+        int result = pieceType.hashCode();
+        result = 31 * result + pieceAlliance.hashCode();
+        result = 31 * result + piecePosition;
+        result = 31 * result + (isFirstMove ? 1 : 0);
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object other){
+        if (this == other){
+            return true;
+        }
+        if (!(other instanceof Piece)){
+            return false;
+        }
+        final Piece otherPiece = (Piece) other;
+        return pieceAlliance == otherPiece.getPieceAlliance() && pieceType == otherPiece.getPieceType() &&
+                piecePosition == otherPiece.getPiecePosition() && isFirstMove == isFirstMove();
+    }
+
+    @Override
+    public int hashCode(){
+        return this.cashedHashCode;
+    }
+
+    // Unspecified return collection (e.g. can be list)
+    public abstract Collection<Move> calculateLegalMoves(final Board board);
+
+    public abstract Piece movePiece(Move move);
+
+    public abstract int locationBonus();
+
+    public int getPieceValue(){
+        return this.pieceType.getPieceValue();
+    }
+
+    public Alliance getPieceAlliance(){
+        return this.pieceAlliance;
+    }
+
+    public boolean isFirstMove(){
+        return this.isFirstMove;
+    }
+
+    public int getPiecePosition(){
+        return this.piecePosition;
+    }
+
+    public PieceType getPieceType(){
+        return this.pieceType;
+    }
+
+    public enum PieceType {
+
+        PAWN("P", 100),
+        ROOK("R", 480),
+        KNIGHT("N", 300),
+        BISHOP("B", 320),
+        QUEEN("Q", 910),
+        KING("K", 10000);
+
+        private final String pieceName;
+        private final int pieceValue;
+
+        PieceType(final String pieceName, final int pieceValue){
+            this.pieceName = pieceName;
+            this.pieceValue = pieceValue;
+        }
+
+        @Override
+        public String toString(){
+            return this.pieceName;
+        }
+
+        public int getPieceValue(){
+            return this.pieceValue;
         }
     }
 
-    private int getDesignator() {
-        HashMap<Character, Integer> pieces = new HashMap<>();
-        pieces.put('P', 1);
-        pieces.put('K', 2);
-        pieces.put('Q', 3);
-        pieces.put('B', 4);
-        pieces.put('N', 5);
-        pieces.put('R', 6);
-
-        if (this.isWhite){
-            return pieces.get(this.pieceName.charAt(1));
-        } else {
-            return pieces.get(this.pieceName.charAt(1)) * -1;
-        }
-    }
-
-    public boolean isRook(){
-        return false;
-    }
-
-    public void setHasMoved(boolean flag){
-        this.hasMoved = flag;
-    }
-
-    public boolean hasMoved(){
-        return this.hasMoved;
-    }
-
-    public int getInitSquareIndex(){
-        return this.initSquareIndex;
-    }
-
-    public String getPieceName() {
-        return pieceName;
-    }
-
-    public boolean isWhite() {
-        return isWhite;
-    }
-
-    public int getPieceDesignator() {
-        return pieceDesignator;
-    }
-
-    public abstract List<Move> getMoves(Board board);
-
-    public int getCurrentSquare() {
-        return this.currentSquare;
-    }
-
-    public void setCurrentSquare(int newSquare) {
-        this.currentSquare = newSquare;
-    }
-
-    public boolean contains(int[] arr, int target) {
-        return Arrays.stream(arr).anyMatch(i -> i == target);
-    }
-
-    public List<Move> linePieceMove(int current, int direction, Board board){
-        List<Move> moves = new ArrayList<>();
-        for (int i = 1; i < 8; i++){
-            int destination = current + direction * i;
-            if (0 <= destination && destination < 64){
-                // inside the board
-                // System.out.println("The destination square " + destination + " is inside the board");
-                Piece pieceOnSquare = board.getPieceOnSquare(destination);
-                if (pieceOnSquare != null) {
-                    // System.out.println("There is a piece on the destination square.");
-                    if (pieceOnSquare.isWhite() != this.isWhite()){
-                        // Can capture but then break loop
-                        // System.out.println("There is a capturable piece on the destination square.");
-                        moves.add(new CaptureMove(current, destination, this, pieceOnSquare));
-                    }
-                    break;
-                } else {
-                    moves.add(new StandardMove(current, destination, this));
-                }
-                // Check if we are on the edge of the board
-                if (contains(board.getFileIndexes("A"), destination) && ((direction < 0 && direction != -8) || direction == 7)){
-                    // System.out.println("The destination square is on the left edge of the board and we are going to the left");
-                    break;
-                }
-                if (contains(board.getFileIndexes("H"), destination) && ((direction > 0 && direction != 8) || direction == -7)){
-                    // System.out.println("The destination square is on the right edge of the board and we are going to the right");
-                    break;
-                }
-            } else {
-                // System.out.println("The destination is outside the board");
-                break;
-            }
-        }
-        return moves;
-    }
-
-    public boolean isKing() {
-        return false;
-    }
 }

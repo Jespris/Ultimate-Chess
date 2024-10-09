@@ -1,9 +1,4 @@
-import Game.Board;
-import Game.ChessGameLayout;
-import Game.Pieces.Knight;
-import Game.Pieces.Queen;
-
-import javax.swing.*;
+import Game.Board.Board;
 
 public class Main {
     public static void main(String[] args) {

@@ -1,62 +1,93 @@
 package Game.Pieces;
 
-import Game.Board;
-import Game.Moves.CaptureMove;
+import Game.Board.Board;
+import Game.Board.BoardUtils;
 import Game.Moves.Move;
-import Game.Moves.StandardMove;
+import Game.Players.Alliance;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class King extends Piece {
-    public King(final boolean isWhite, final int squareIndex) {
-        super('K', isWhite, squareIndex);
+    private final static int[] KING_VECTORS = {-9, -8, -7, -1, 1, 7, 8, 9};
+    private final boolean isCastled;
+    private final boolean kingSideCastleCapable;
+    private final boolean queenSideCastleCapable;
+
+    public King(final Alliance pieceAlliance, final int piecePosition,
+                final boolean kingSideCastleCapable, final boolean queenSideCastleCapable) {
+        super(PieceType.KING, pieceAlliance, piecePosition, true);
+        this.isCastled = false;
+        this.kingSideCastleCapable = kingSideCastleCapable;
+        this.queenSideCastleCapable = queenSideCastleCapable;
+    }
+
+    public King(final Alliance pieceAlliance, final int piecePosition, final boolean isFirstMove,
+                final boolean isCastled, final boolean kingSideCastleCapable, final boolean queenSideCastleCapable){
+        super(PieceType.KING, pieceAlliance, piecePosition, isFirstMove);
+        this.isCastled = isCastled;
+        this.kingSideCastleCapable = kingSideCastleCapable;
+        this.queenSideCastleCapable = queenSideCastleCapable;
+    }
+
+    public boolean hasCastled(){
+        return this.isCastled;
+    }
+
+    public boolean isKingSideCastleCapable() {
+        return this.kingSideCastleCapable;
+    }
+
+    public boolean isQueenSideCastleCapable() {
+        return this.queenSideCastleCapable;
     }
 
     @Override
-    public List<Move> getMoves(Board board) {
-        List<Move> moves = new ArrayList<>();
-        int[] directions = {-9, -8, -7, -1, 1, 7, 8, 9};
-        int current = getCurrentSquare();
-        for (int direction : directions) {
-            int destination = current + direction;
-            if (validSquare(current, direction, board)){
-                Piece pieceOnSquare = board.getPieceOnSquare(destination);
-                if (pieceOnSquare != null) {
-                    // System.out.println("There is a piece on the destination square.");
-                    if (pieceOnSquare.isWhite() != this.isWhite()){
-                        // Can capture but then break loop
-                        // System.out.println("There is a capturable piece on the destination square.");
-                        moves.add(new CaptureMove(current, destination, this, pieceOnSquare));
-                    }
+    public List<Move> calculateLegalMoves(Board board) {
+        final List<Move> legalMoves = new ArrayList<>();
+        for (final int kingVector: KING_VECTORS){
+            if (isFirstColumnExclusion(this.piecePosition, kingVector) ||
+                    isEightColumnExclusion(this.piecePosition, kingVector)){
+                continue;
+            }
+            final int destination = this.piecePosition + kingVector;
+            if (BoardUtils.isValidTileCoordinate(destination)) {
+                final Piece pieceAtDestination = board.getPiece(destination);
+                if (pieceAtDestination == null) {
+                    legalMoves.add(new Move.StandardMove(board, destination, this));
                 } else {
-                    moves.add(new StandardMove(current, destination, this));
+                    final Alliance pieceOnTileAlliance = pieceAtDestination.getPieceAlliance();
+                    if (this.pieceAlliance != pieceOnTileAlliance) {
+                        legalMoves.add(new Move.MajorAttackMove(board, this, destination, pieceAtDestination));
+                    }
                 }
             }
-        }
-        return moves;
-    }
 
-    private boolean validSquare(int current, int direction, Board board) {
-        int destination = current + direction;
-        if (0 <= destination && destination < 64) {
-            // Check if we are on the edge of the board
-            if (contains(board.getFileIndexes("A"), destination) && (direction == -1 || direction == -9 || direction == 7)) {
-                // System.out.println("The destination square is on the left edge of the board and we are going to the left");
-                return false;
-            }
-            if (contains(board.getFileIndexes("H"), destination) && (direction == 1 || direction == 9 || direction == -7)) {
-                // System.out.println("The destination square is on the right edge of the board and we are going to the right");
-                return false;
-            }
-            return true;
         }
-        // Outside the board
-        return false;
+        return List.copyOf(legalMoves);
     }
 
     @Override
-    public boolean isKing() {
-        return true;
+    public String toString(){
+        return PieceType.KING.toString();
+    }
+
+    @Override
+    public King movePiece(final Move move) {
+        return new King(move.getPieceMoved().getPieceAlliance(), move.getDestination(), false, move.isCastlingMove(), false, false);
+    }
+
+    @Override
+    public int locationBonus() {
+        return this.pieceAlliance.kingBonus(this.piecePosition);
+    }
+
+    // Some king vectors are wrong at the edge of the boards, exclude those when adding legal moves
+    public boolean isFirstColumnExclusion(final int currentPosition, final int candidateOffset){
+        return BoardUtils.FIRST_COLUMN[currentPosition] && (candidateOffset == -1 || candidateOffset == -9 || candidateOffset == 7);
+    }
+
+    public boolean isEightColumnExclusion(final int currentPosition, final int candidateOffset){
+        return BoardUtils.EIGHT_COLUMN[currentPosition] && (candidateOffset == 1 || candidateOffset == 9 || candidateOffset == -7);
     }
 }
