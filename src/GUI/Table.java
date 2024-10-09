@@ -6,6 +6,7 @@ import Game.Moves.Move.MoveFactory;
 import Game.Board.BoardUtils;
 import Game.Pieces.Piece;
 import Game.Moves.MoveTransition;
+import Game.Players.AI.AlphaBetaMoveSorted;
 import Game.Players.AI.MoveStrategy;
 import Game.Players.AI.RandomMove;
 
@@ -162,7 +163,7 @@ public class Table extends Observable {
 
             @Override
             protected Move doInBackground() throws Exception{
-                final MoveStrategy strategy = new RandomMove();
+                final MoveStrategy strategy = new AlphaBetaMoveSorted(2);  // TODO: fix hardcoded search time
                 if (isCancelled()){
                     System.out.println("bestMoveFinder cancelled!");
                     return null;
