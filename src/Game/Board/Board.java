@@ -7,6 +7,8 @@ import Game.Players.BlackPlayer;
 import Game.Players.Player;
 import Game.Players.WhitePlayer;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -77,9 +79,13 @@ public class Board {
 
     private List<Move> calculateLegalMoves(List<Piece> pieces) {
         final List<Move> legalMoves = new ArrayList<>();
+        Instant start = Instant.now();
         for (final Piece piece : pieces){
             legalMoves.addAll(piece.calculateLegalMoves(this));
         }
+        Instant end = Instant.now();    // End time
+        Duration duration = Duration.between(start, end);
+        System.out.println("Calculate moves duration: " + duration.toNanos() + "ns");
         return List.copyOf(legalMoves);
     }
 

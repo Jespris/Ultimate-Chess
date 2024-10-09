@@ -1,8 +1,13 @@
 package Game.Board;
+import Game.Moves.Move;
+import Game.Moves.MoveStatus;
+import Game.Moves.MoveTransition;
 import Game.Pieces.King;
 import Game.Pieces.Piece;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public enum BoardUtils {
@@ -91,7 +96,18 @@ public enum BoardUtils {
         return board.whitePlayer().isInCheck() || board.blackPlayer().isInCheck();
     }
 
-    public boolean isEndGameScenario(final Board board) {
+    public static boolean isEndGameScenario(final Board board) {
         return board.currentPlayer().isInCheckMate() || board.currentPlayer().isInStaleMate();
+    }
+
+    public static List<Move> removeIllegalMoves(final Board board){
+        final List<Move> moves = new ArrayList<>();
+        for (Move move : board.currentPlayer().getLegalMoves()){
+            MoveTransition moveTransition = board.currentPlayer().makeMove(move);
+            if (moveTransition.getMoveStatus() == MoveStatus.DONE){
+                moves.add(move);
+            }
+        }
+        return moves;
     }
 }

@@ -97,6 +97,9 @@ public abstract class Player {
         if (!this.legalMoves.contains(move)){
             return new MoveTransition(this.board, this.board, move, MoveStatus.ILLEGAL_MOVE);
         }
+        if (this.board.currentPlayer().isInCheck() && move.isCastlingMove()){
+            return new MoveTransition(this.board, this.board, move, MoveStatus.ILLEGAL_MOVE);
+        }
         final Board transitionedBoard = move.execute();
         return transitionedBoard.currentPlayer().getOpponent().isInCheck() ?
                 new MoveTransition(this.board, this.board, move, MoveStatus.LEAVES_PLAYER_IN_CHECK) :

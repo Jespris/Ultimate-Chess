@@ -3,6 +3,8 @@ package Testing;
 import Game.Board.Board;
 import Game.Board.BoardUtils;
 import Game.Moves.Move;
+import Game.Moves.MoveStatus;
+import Game.Moves.MoveTransition;
 import Game.Pieces.*;
 import Game.Players.Alliance;
 import org.junit.Test;
@@ -138,9 +140,142 @@ public class BoardTests {
         board = builder.build();
         nrLegalMoves = board.getAllLegalMoves().size();
         assertEquals(2+2+5+2+1+3, nrLegalMoves);
+
+        // Set the king in check
+        builder.setPiece(new Rook(Alliance.BLACK, BoardUtils.getCoordinateAtPosition("e4")));
+        board = builder.build();
+        assertTrue(board.currentPlayer().isInCheck());
+        List<Move> moves = BoardUtils.removeIllegalMoves(board);
+        nrLegalMoves = moves.size();
+        // System.out.println(board.toString());
+        assertEquals(4, nrLegalMoves);
+
+        // Block the check with pawn
+        builder.setPiece(new Pawn(Alliance.WHITE, BoardUtils.getCoordinateAtPosition("e2")));
+        board = builder.build();
+        assertFalse(board.currentPlayer().isInCheck());
+        nrLegalMoves = board.currentPlayer().getLegalMoves().size();
+        assertEquals(2+2+1+4+2+1+3, nrLegalMoves);
+
+        // Add rook to block king side castle
+        builder.setPiece(new Rook(Alliance.BLACK, BoardUtils.getCoordinateAtPosition("f4")));
+        board = builder.build();
+        assertFalse(board.currentPlayer().isInCheck());
+        moves = BoardUtils.removeIllegalMoves(board);
+        for (Move move : moves) {
+            assertFalse(move.isCastlingMove());
+        }
+
+        // Add pawn to block preventing rook
+        builder.setPiece(new Pawn(Alliance.WHITE, BoardUtils.getCoordinateAtPosition("f2")));
+        board = builder.build();
+        assertEquals(1, findNrOfCastlingMoves(board));
+
+        // Move the kingside rook
+        MoveTransition moveTransition = board.currentPlayer().makeMove(
+                Move.MoveFactory.createMove(board, 63, 62)
+        );
+        assertEquals(moveTransition.getMoveStatus(), MoveStatus.DONE);
+        board = moveTransition.getToBoard();
+        assertEquals(board.currentPlayer().getAlliance(), Alliance.BLACK);
+        // random move
+        moveTransition = board.currentPlayer().makeMove(
+                Move.MoveFactory.createMove(
+                        board,
+                        BoardUtils.getCoordinateAtPosition("e4"),
+                        BoardUtils.getCoordinateAtPosition("e5")
+                )
+        );
+        assertEquals(moveTransition.getMoveStatus(), MoveStatus.DONE);
+        board = moveTransition.getToBoard();
+        assertEquals(board.currentPlayer().getAlliance(), Alliance.WHITE);
+
+        // Move the rook back
+        moveTransition = board.currentPlayer().makeMove(
+                Move.MoveFactory.createMove(board, 62, 63)
+        );
+        assertEquals(moveTransition.getMoveStatus(), MoveStatus.DONE);
+        board = moveTransition.getToBoard();
+        assertEquals(board.currentPlayer().getAlliance(), Alliance.BLACK);
+        // Inverted random move
+        moveTransition = board.currentPlayer().makeMove(
+                Move.MoveFactory.createMove(
+                        board,
+                        BoardUtils.getCoordinateAtPosition("e5"),
+                        BoardUtils.getCoordinateAtPosition("e4")
+                )
+        );
+        assertEquals(moveTransition.getMoveStatus(), MoveStatus.DONE);
+        board = moveTransition.getToBoard();
+        assertEquals(board.currentPlayer().getAlliance(), Alliance.WHITE);
+        assertEquals(0, findNrOfCastlingMoves(board));
     }
 
     private int findNrOfCastlingMoves(final Board board){
-        return 0;
+        List<Move> moves = BoardUtils.removeIllegalMoves(board);
+        int castlingMoves = 0;
+        for (Move move : moves) {
+            if (move.isCastlingMove()) {
+                castlingMoves++;
+            }
+        }
+        return castlingMoves;
+    }
+
+    @Test
+    public void testEnPassant(){
+        Board board = Board.createStandardBoard();
+        MoveTransition moveTransition = board.currentPlayer().makeMove(
+                Move.MoveFactory.createMove(
+                        board,
+                        BoardUtils.getCoordinateAtPosition("e2"),
+                        BoardUtils.getCoordinateAtPosition("e4")
+                )
+        );
+        assertEquals(moveTransition.getMoveStatus(), MoveStatus.DONE);
+        board = moveTransition.getToBoard();
+        assertEquals(board.currentPlayer().getAlliance(), Alliance.BLACK);
+        moveTransition = board.currentPlayer().makeMove(
+                Move.MoveFactory.createMove(
+                        board,
+                        BoardUtils.getCoordinateAtPosition("d7"),
+                        BoardUtils.getCoordinateAtPosition("d5")
+                )
+        );
+        assertEquals(moveTransition.getMoveStatus(), MoveStatus.DONE);
+        board = moveTransition.getToBoard();
+        assertEquals(board.currentPlayer().getAlliance(), Alliance.WHITE);
+        moveTransition = board.currentPlayer().makeMove(
+                Move.MoveFactory.createMove(
+                        board,
+                        BoardUtils.getCoordinateAtPosition("e4"),
+                        BoardUtils.getCoordinateAtPosition("e5")
+                )
+        );
+        assertEquals(moveTransition.getMoveStatus(), MoveStatus.DONE);
+        board = moveTransition.getToBoard();
+        assertEquals(board.currentPlayer().getAlliance(), Alliance.BLACK);
+        moveTransition = board.currentPlayer().makeMove(
+                Move.MoveFactory.createMove(
+                        board,
+                        BoardUtils.getCoordinateAtPosition("f7"),
+                        BoardUtils.getCoordinateAtPosition("f5")
+                )
+        );
+        assertEquals(moveTransition.getMoveStatus(), MoveStatus.DONE);
+        board = moveTransition.getToBoard();
+        assertEquals(board.currentPlayer().getAlliance(), Alliance.WHITE);
+        assertNotNull(board.getEnPassantPawn());
+        moveTransition = board.currentPlayer().makeMove(
+                Move.MoveFactory.createMove(
+                        board,
+                        BoardUtils.getCoordinateAtPosition("e5"),
+                        BoardUtils.getCoordinateAtPosition("f6")
+                )
+        );
+        assertEquals(moveTransition.getMoveStatus(), MoveStatus.DONE);
+        board = moveTransition.getToBoard();
+        assertEquals(board.currentPlayer().getAlliance(), Alliance.BLACK);
+        assertNull(board.getEnPassantPawn());
     }
 }

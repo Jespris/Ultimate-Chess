@@ -17,7 +17,6 @@ public class Rook extends Piece {
 
     public Rook(final Alliance pieceAlliance, final int piecePosition, final boolean isFirstMove){
         super(PieceType.ROOK, pieceAlliance, piecePosition, isFirstMove);
-
     }
 
     @Override
@@ -61,7 +60,7 @@ public class Rook extends Piece {
 
     @Override
     public Rook movePiece(final Move move) {
-        return new Rook(move.getPieceMoved().getPieceAlliance(), move.getDestination());
+        return new Rook(move.getPieceMoved().getPieceAlliance(), move.getDestination(), false);
     }
 
     @Override
