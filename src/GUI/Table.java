@@ -49,8 +49,8 @@ public class Table extends Observable {
     private boolean highlightLegalMoves;
 
     private final static Dimension OUTER_FRAME_DIMENSION = new Dimension(600, 600);
-    private final static Dimension TILE_PANEL_DIMENSION = new Dimension(10, 10);
-    private final static Dimension BOARD_PANEL_DIMENSION = new Dimension(400, 350);
+    private final static Dimension TILE_PANEL_DIMENSION = new Dimension(50, 50);
+    private final static Dimension BOARD_PANEL_DIMENSION = new Dimension(400, 400);
 
     private String pieceIconPath;
 
@@ -163,7 +163,7 @@ public class Table extends Observable {
 
             @Override
             protected Move doInBackground() throws Exception{
-                final MoveStrategy strategy = new AlphaBetaMoveSorted(2);  // TODO: fix hardcoded search time
+                final MoveStrategy strategy = new AlphaBetaMoveSorted(Table.get().getGameSetup().getSearchDepth());
                 if (isCancelled()){
                     System.out.println("bestMoveFinder cancelled!");
                     return null;
@@ -591,8 +591,19 @@ public class Table extends Observable {
                 // user has highlight moves selected in preferences
                 for (final Move move : pieceLegalMoves(board)){
                     if (move.getDestination() == this.tileID){
-                        try{
-                            add(new JLabel(new ImageIcon(ImageIO.read(new File("art/misc/dot.png")))));
+                        try {
+                            // Read the original dot image
+                            BufferedImage dotImage = ImageIO.read(new File("src/resources/misc/dot.png"));
+
+                            // Get tile dimensions (half size of the tile panel)
+                            int scaledWidth = TILE_PANEL_DIMENSION.width / 2;
+                            int scaledHeight = TILE_PANEL_DIMENSION.height / 2;
+
+                            // Scale the image to half the tile size
+                            Image scaledDotImage = dotImage.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+
+                            // Add the scaled dot image to the tile
+                            add(new JLabel(new ImageIcon(scaledDotImage)));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

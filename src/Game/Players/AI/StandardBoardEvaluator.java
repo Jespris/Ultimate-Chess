@@ -43,7 +43,7 @@ public final class StandardBoardEvaluator implements BoardEvaluator{
     }
 
     private int scorePlayer(final Board board, final Player player, final int depth) {
-        Instant start = Instant.now();
+        // Instant start = Instant.now();
         final int score = materialValue(player) +
                 piecePlacement(player) +
                 pieceMobility(player) +
@@ -51,9 +51,9 @@ public final class StandardBoardEvaluator implements BoardEvaluator{
                 checkMate(player, depth) +
                 castled(player) +
                 kingSafety(player);
-        Instant end = Instant.now();
-        Duration duration = Duration.between(start, end);
-        System.out.println("Board eval time: " + duration.toMillis() + "ms");
+        // Instant end = Instant.now();
+        // Duration duration = Duration.between(start, end);
+        // System.out.println("Board eval time: " + duration.toMillis() + "ms");
         return score;
     }
 
